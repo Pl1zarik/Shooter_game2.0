@@ -96,9 +96,17 @@ class Bullet(GameSprite):
         if self.rect.y < 0:
             self.kill()
 
+class Boss(GameSprite):
+    def update(self):
+        self.rect.x += self.speed
+        if self.rect.x < 0:
+            self.speed *= -1
+        else:
+            self.speed *= -1
 
 # Группы
 player = None
+boss = None
 bullets = pygame.sprite.Group()
 monsters = pygame.sprite.Group()
 no_break_monsters = pygame.sprite.Group()
@@ -108,7 +116,7 @@ boosts_cartridges = pygame.sprite.Group()
 
 # сброс игры
 def new_start():
-    global score, lost, patrons, health, player, finish, FLAG
+    global score, lost, patrons, health, player, finish, FLAG, boss
 
     score = 0
     lost = 0
@@ -124,6 +132,7 @@ def new_start():
     boosts_cartridges.empty()
 
     player = Player("images/rocket_100hp.png", W // 2, H - 130, 100, 120, 5)
+    # boss = Boss("images/boss.png", W // 2, H - 130, 100, 120, 5)
 
     for _ in range(5):
         monster = Enemy("images/ufo.png", randint(80, W - 80), randint(-200, -50), 80, 50, randint(1, 3))
@@ -144,7 +153,16 @@ def new_start():
             "images/cartridges.png", randint(80, W - 80), -40, 80, 50, randint(1, 5)
         )
         boosts_cartridges.add(patron_png)
-
+# def boss_go():
+#     if int(start_time) - int(boss_and_speed_time) == time_boss or lost >= boss_lost:
+#                 print(int(current_time-boss_and_speed_time))
+#                 boss_and_speed_time = current_time
+#                 sprite.Group.empty(monsters) 
+#                 sprite.Group.empty(no_break_monsters)
+#                 time_boss += current_time
+#                 time_boss *= 1.5
+#                 boss_lost += lost
+#                 boss_lost *= 1.5
 
 # отрисовка спрайтов
 def draw_sprite():
@@ -154,6 +172,7 @@ def draw_sprite():
     boosts_health.draw(main_win)
     boosts_cartridges.draw(main_win)
     bullets.draw(main_win)
+    
 
 
 # движение спрайтов
@@ -164,6 +183,7 @@ def move_sprites():
     boosts_health.update()
     boosts_cartridges.update()
     bullets.update()
+    # boss.update()
 
 
 # столкновение групп
@@ -259,17 +279,20 @@ def game():
                     player.FIRE()
                     last_shot = timer()
 
+
+
         main_win.blit(back, (0, 0))
         draw_sprite()
         player.reset()
+        # boss.reset()
         move_sprites()
         collide_group()
         ifs()
         texts()
 
         if health <= 0:
-            lose_text = font2.render("Ты проиграл!!!", True, (139, 0, 0))
-            main_win.blit(lose_text, (W // 2 - 100, H // 2 - 30))
+            lose_text = font2.render("Ты проиграл, нажмите r для рестарта", True, (139, 0, 0))
+            main_win.blit(lose_text, (W // 2 - 350, H // 2 - 30))
             pygame.display.update()
 
             # задержка перед выходом
@@ -278,10 +301,11 @@ def game():
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         return
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_r and wait:
+                        new_start()
                         wait = False
-                
                 clock.tick(FPS)
-            return
+            # return
         pygame.display.update()
         clock.tick(FPS)
+       
